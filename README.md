@@ -18,7 +18,7 @@ I set up the environment on Linux using the steps below.
 Install packages (If you only intend to use the C++ version, you don't need the jdk):
 
 ```bash
-sudo apt-get install flex bison build-essential csh openjdk-17-jdk libxaw7-dev wget
+sudo apt-get install flex-old bison build-essential csh openjdk-17-jdk libxaw7-dev wget
 ```
 
 Make the /usr/class directory:
@@ -91,6 +91,9 @@ spim /usr/class/cs143/cool/examples/cool.s
 
 If you get the following error:
 
+```bash
+line82: /usr/class/cs143/cool/bin/../bin/.i686/spim: No such file or directory
+```
 
 To fix this, we need to add the i386 architecture to run 32-bit executable files:
 
@@ -126,6 +129,7 @@ sudo apt-get install gcc-multilib
 ### Programming Assignments
 
 1. [Programming Assignment 1](https://web.stanford.edu/class/cs143/handouts/PA1.pdf)
+    * [My Solution](./assignments/programming/PA1/)
 2. [Programming Assignment 2](https://web.stanford.edu/class/cs143/handouts/PA2.pdf)
 3. [Programming Assignment 3](https://web.stanford.edu/class/cs143/handouts/PA3.pdf)
 4. [Programming Assignment 4](https://web.stanford.edu/class/cs143/handouts/PA4.pdf)
