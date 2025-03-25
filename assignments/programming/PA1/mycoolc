@@ -1,0 +1,2 @@
+#!/bin/csh -f
+./lexer $* | /usr/class/cs143/cool/bin/parser $* | /usr/class/cs143/cool/bin/semant $* | /usr/class/cs143/cool/bin/cgen $*
