@@ -11,7 +11,7 @@ This repo contains my work and notes as I progress through [Stanford's CS 143 - 
 5. [Cool Programming Language Runtime](https://web.stanford.edu/class/cs143/materials/cool-runtime.pdf)
 6. [SPIM Manual](https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf)
 
-### Resource Installation & Environment Set-Up
+## Resource Installation & Environment Set-Up
 
 I set up the environment on Linux using the steps below.
 
@@ -139,10 +139,7 @@ sudo apt-get install gcc-multilib
 ### Written Assignments
 
 1. [Written Assignment 1](https://web.stanford.edu/class/cs143/handouts/WA1.pdf) [(LaTeX template/pdf)](https://web.stanford.edu/class/cs143/handouts/WA1_template.tex)
-    * [Solutions](https://web.stanford.edu/class/cs143/handouts/WA1_sol.pdf)
+    * [My Solution](./assignments/written/WA1/WA1_solution.pdf)
 2. [Written Assignment 2](https://web.stanford.edu/class/cs143/handouts/WA2.pdf) [(LaTeX template/pdf)](https://web.stanford.edu/class/cs143/handouts/WA2_template.tex)
-    * [Solutions](https://web.stanford.edu/class/cs143/handouts/WA2_sol.pdf)
 3. [Written Assignment 3](https://web.stanford.edu/class/cs143/handouts/WA3.pdf) [(LaTeX template/pdf)](https://web.stanford.edu/class/cs143/handouts/WA3_template.tex)
-    * [Solutions](https://web.stanford.edu/class/cs143/handouts/WA3_sol.pdf)
 4. [Written Assignment 4](https://web.stanford.edu/class/cs143/handouts/WA4.pdf) [(LaTeX template/pdf)](https://web.stanford.edu/class/cs143/handouts/WA4_template.tex)
-    * [Solutions](https://web.stanford.edu/class/cs143/handouts/WA4_sol.pdf)

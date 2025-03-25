@@ -1,3 +1,9 @@
 **/*.o
 **/*.d
 **/lexer
+**/*.synctex.gz
+**/*.fdb_latexmk
+**/*.aux
+**/*.fls
+**/*.log
+**/*.out
