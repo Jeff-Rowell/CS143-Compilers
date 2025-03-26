@@ -195,11 +195,11 @@ Tip: for readability, states in the DFA may be labeled according to the set of s
 
     \begin{center}
         \item \begin{tikzpicture}[auto]
-            \node[state,initial]    (q_0)                                   {$q_0$};
+            \node[state,initial]    (q_0)                                                 {$q_0$};
             \node[state]            (q_01)      [right=0.7cm and 4cm of q_0]              {$q_{01}$};
             \node[state,accepting]  (q_012)     [above right=0.7cm and 4cm of q_01]       {$q_{012}$};
             \node[state,accepting]  (q_02)      [below=4cm and 0.7cm of q_012]            {$q_{02}$};
-            \node[state]            (q_not)     [above right of=q_0]        {$q_{\emptyset}$};
+            \node[state]            (q_not)     [above right of=q_0]                      {$q_{\emptyset}$};
             \path[->]
                 (q_0)   edge                    node {$a$}       (q_not)
                 (q_0)   edge                    node {$b$}       (q_01)
@@ -306,6 +306,39 @@ Examples of strings \textbf{not} in $L$: $\epsilon$, $a$, $abcabca$, $bbb$.
 Draw an NFA for $L$.  Your solution should have no more than 15 states.
 
 \textbf{Solution:}
+\begin{center}
+    \item \begin{tikzpicture}[auto]
+        \node[state,initial]    (q_0)                               {};
+        \node[state]            (q_1)        [right of=q_0]         {};
+        \node[state]            (q_2)        [right of=q_1]         {};
+        \node[state,accepting]  (q_3)        [right of=q_2]         {};
+        \node[state]            (q_4)        [above=3cm of q_1]     {};
+        \node[state]            (q_5)        [above=3cm of q_2]     {};
+        \node[state,accepting]  (q_6)        [above=3cm of q_3]     {};
+        \node[state]            (q_7)        [below=3cm of q_1]     {};
+        \node[state]            (q_8)        [below=3cm of q_2]     {};
+        \node[state,accepting]  (q_9)        [below=3cm of q_3]     {};
+        \path[->]
+            (q_0)       edge                                   node {$\epsilon$}       (q_1)
+            (q_1)       edge[loop above]                       node {$a,c$}            (q_1)
+            (q_1)       edge[bend left=20]                     node {$b$}              (q_2)
+            (q_2)       edge[loop above]                       node {$a,c$}            (q_3)
+            (q_2)       edge                                   node {$b$}              (q_3)
+            (q_2)       edge[bend left=20]                     node {$b$}              (q_1)
+            (q_0)       edge                                   node {$\epsilon$}       (q_4)
+            (q_4)       edge[loop above]                       node {$b,c$}            (q_4)
+            (q_4)       edge[bend left=20]                     node {$a$}              (q_5)
+            (q_5)       edge[loop above]                       node {$b,c$}            (q_6)
+            (q_5)       edge                                   node {$a$}              (q_6)
+            (q_5)       edge[bend left=20]                     node {$a$}              (q_4)
+            (q_0)       edge                                   node {$\epsilon$}       (q_7)
+            (q_7)       edge[loop above]                       node {$a,b$}            (q_7)
+            (q_7)       edge[bend left=20]                     node {$c$}              (q_8)
+            (q_8)       edge[loop above]                       node {$a,b$}            (q_9)
+            (q_8)       edge                                   node {$c$}              (q_9)
+            (q_8)       edge[bend left=20]                     node {$c$}              (q_7);
+    \end{tikzpicture}
+\end{center}
 
 \newpage
 
@@ -323,7 +356,10 @@ Give an input to this scanner such that the output string is $((\mathtt{apple})^
 
 \textbf{Solution:}
 
-
+    \begin{center}
+        $((\mathtt{01})^3 (\mathtt{0})^4)^2(\mathtt{01})^3\mathtt{0110}(10)^3\mathtt{1001}$    
+    \end{center}
+    
 \newpage
 
 % Problem 6
@@ -341,7 +377,17 @@ However, it is possible to have a set of regular expressions for which we can to
 
 As a challenge (not necessary for credit), try to find a solution that only uses one regular expression.
 
-\textbf{Solution}:
+\textbf{Solution}: Consider a scanner for Java that is scanning the $\mathtt{>>}$ (right shift) and $\mathtt{>>>}$ (unsigned right shift) operators:
+    \begin{quote}
+        \begin{lstlisting}
+        %%
+        >>      { return T_RightShift; }
+        >>>     { return T_UnsignedRightShift; }
+        \end{lstlisting}
+    \end{quote}
+
+    Consider the input string $``>>>>"$. This input string can be broken into $``>>"$ followed by another $``>>"$, but when
+    using the longest possible match strategy, the scanner would consume the string $``>>>"$, leaving a single $``>"$ which doesn't match any token.
 
 \end{enumerate}
 \end{document}
