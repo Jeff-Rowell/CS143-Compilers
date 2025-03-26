@@ -150,6 +150,33 @@ Tip: for readability, states in the DFA may be labeled according to the set of s
     \end{tikzpicture}
 
     \textbf{Solution:}
+    \begin{center}
+        \item \begin{tikzpicture}[auto]
+            \node[state,initial]    (q_0)                           {$q_0$};
+            \node[state,accepting]  (q_01)      [above of=q_0]      {$q_{01}$};
+            \node[state,accepting]  (q_1)       [right of=q_0]      {$q_1$};
+            \node[state]            (q_not)     [below of=q_0]      {$q_{\emptyset}$};
+            \path[->]
+                (q_01)  edge[bend left=20]      node {$a$}       (q_0)
+                (q_0)   edge[bend left=20]      node {$c$}       (q_01)
+                (q_01)  edge[bend left=20]      node {$b$}       (q_1)
+                (q_01)  edge[loop above]        node {$c$}       (q_01)
+                (q_0)   edge[bend left=20]      node {$b$}       (q_1)
+                (q_1)   edge[bend left=20]      node {$a$}       (q_0)
+                (q_0)   edge                    node {$a$}       (q_not)
+                (q_1)   edge[bend left=20]      node {$b$}       (q_not)
+                (q_1)   edge[loop right]        node {$c$}       (q_1)
+                (q_not) edge[loop below]        node {$a,b,c$}   (q_not);
+        \end{tikzpicture}
+    \end{center}
+    
+    Corresponding states (DFA to NFA):
+    \begin{itemize}
+        \item $q_0$: \{{$q_0$}\}
+        \item $q_1$: \{{$q_1$}\}
+        \item $q_{01}$: \{{$q_0$, $q_1$}\}
+        \item $q_{\emptyset}$: \{{}\}
+    \end{itemize}
     
     \item \begin{tikzpicture}[auto]
         \node[state,initial]   (q_0)                      {$q_0$};
@@ -165,7 +192,41 @@ Tip: for readability, states in the DFA may be labeled according to the set of s
     \end{tikzpicture}
 
     \textbf{Solution:}
-    
+
+    \begin{center}
+        \item \begin{tikzpicture}[auto]
+            \node[state,initial]    (q_0)                                   {$q_0$};
+            \node[state]            (q_01)      [right=0.7cm and 4cm of q_0]              {$q_{01}$};
+            \node[state,accepting]  (q_012)     [above right=0.7cm and 4cm of q_01]       {$q_{012}$};
+            \node[state,accepting]  (q_02)      [below=4cm and 0.7cm of q_012]            {$q_{02}$};
+            \node[state]            (q_not)     [above right of=q_0]        {$q_{\emptyset}$};
+            \path[->]
+                (q_0)   edge                    node {$a$}       (q_not)
+                (q_0)   edge                    node {$b$}       (q_01)
+                (q_0)   edge[loop below]        node {$c$}       (q_0)
+                (q_not) edge[loop above]        node {$a,b,c$}   (q_not)
+                (q_01)  edge[bend right=20]     node {$a$}       (q_not)
+                (q_01)  edge[loop below]        node {$b$}       (q_01)
+                (q_01)  edge[bend left=20]      node {$c$}       (q_012)
+                (q_012) edge[bend left=20]      node {$a$}       (q_02)
+                (q_012) edge[bend left=20]      node {$b$}       (q_01)
+                (q_012) edge[loop right]        node {$c$}       (q_012)
+                (q_02)  edge[loop right]        node {$a$}       (q_02)
+                (q_02)  edge                    node {$b$}       (q_01)
+                (q_02)  edge[bend left=20]      node {$c$}       (q_0);
+        \end{tikzpicture}
+    \end{center}
+
+    Corresponding states (DFA to NFA):
+    \begin{itemize}
+        \item $q_0$: \{{$q_0$}\}
+        \item $q_{01}$: \{{$q_0$,$q_1$}\}
+        \item $q_{02}$: \{{$q_0$, $q_2$}\}
+        \item $q_{012}$: \{{$q_0$, $q_1$, $q_2$}\}
+        \item $q_{\emptyset}$: \{{}\}
+    \end{itemize}
+    \vspace{2cm}
+
     \item \begin{tikzpicture}[auto]
         \node[state, initial] (q_0) {$q_0$};
         \node[state] (q_2) [right of=q_0] {$q_2$};
@@ -187,6 +248,50 @@ Tip: for readability, states in the DFA may be labeled according to the set of s
     \end{tikzpicture}
 
     \textbf{Solution:}
+    \begin{center}
+        \item \begin{tikzpicture}[auto]
+            \node[state,initial]    (q_0)                                                  {$q_0$};
+            \node[state]            (q_0123)        [above=3cm of q_0]                     {$q_{0123}$};
+            \node[state]            (q_023)         [right=3cm of q_0]                     {$q_{023}$};
+            \node[state]            (q_03)          [below=2cm and 0.7cm of q_0]           {$q_{03}$};
+            \node[state, accepting] (q_0234)        [right=4cm of q_0123]                  {$q_{0234}$};
+            \node[state, accepting] (q_01234)       [above of=q_0234]                      {$q_{01234}$};
+            \node[state, accepting] (q_034)         [right=4cm of q_0234]                  {$q_{034}$};
+            \path[->]
+                (q_0)       edge                                   node {$a$}       (q_0123)
+                (q_0)       edge                                   node {$b$}       (q_023)
+                (q_0)       edge                                   node {$c$}       (q_03)
+                (q_03)      edge[bend left=100]                    node {$a$}       (q_0123)
+                (q_03)      edge                                   node {$b$}       (q_023)
+                (q_03)      edge[bend right=100]                   node {$c$}       (q_034)
+                (q_0123)    edge[bend left=20]                     node {$a$}       (q_01234)
+                (q_0123)    edge[bend left=20]                     node {$b$}       (q_0234)
+                (q_0123)    edge[bend left=100]                    node {$c$}       (q_034)
+                (q_01234)   edge[loop right]                       node {$a$}       (q_01234)
+                (q_01234)   edge                                   node {$b$}       (q_0234)
+                (q_01234)   edge                                   node {$c$}       (q_034)
+                (q_0234)    edge[bend left=20]                     node {$a$}       (q_0123)
+                (q_0234)    edge[loop right]                       node {$b$}       (q_0234)
+                (q_0234)    edge[bend right=30]                    node {$c$}       (q_034)
+                (q_034)     edge[out=200 in=10, looseness=1.5]     node [swap]{$a$}       (q_0123)
+                (q_034)     edge[bend left=20]                     node {$b$}       (q_023)
+                (q_034)     edge[loop right]                       node {$c$}       (q_034)
+                (q_023)     edge                                   node {$a$}       (q_0123)
+                (q_023)     edge                                   node {$b$}       (q_0234)
+                (q_023)     edge                                   node {$c$}       (q_034);
+        \end{tikzpicture}
+    \end{center}
+
+    Corresponding states (DFA to NFA):
+    \begin{itemize}
+        \item $q_0$: \{{$q_0$}\}
+        \item $q_{0123}$: \{{$q_0$, $q_1$, $q_2$, $q_3$}\}
+        \item $q_{023}$: \{{$q_0$, $q_2$, $q_3$}\}
+        \item $q_{03}$: \{{$q_0$, $q_3$}\}
+        \item $q_{01234}$: \{{$q_0$, $q_1$, $q_2$, $q_3$, $q_4$}\}
+        \item $q_{0234}$: \{{$q_0$, $q_2$, $q_3$, $q_4$}\}
+        \item $q_{034}$: \{{$q_0$, $q_3$, $q_4$}\}
+    \end{itemize}
 \end{enumerate}
 
 \newpage
