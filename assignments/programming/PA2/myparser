@@ -1,0 +1,5 @@
+#!/bin/csh -f
+
+# Good parser is at /usr/class/cs143/cool/bin/parser
+
+/usr/class/cs143/cool/bin/lexer $* | ./parser $*
