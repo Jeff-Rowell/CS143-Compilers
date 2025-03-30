@@ -136,7 +136,9 @@
     %type <feature>     feature
     %type <features>    feature_list
     %type <features>    nonempty_feature_list
+    %type <formal>      formal
     %type <formals>     formal_list
+    %type <formals>     nonempty_formal_list
     %type <expression>  expression
     %type <expression>  nonempty_expression
     
@@ -149,67 +151,72 @@
     */
     program	: class_list
             { 
-              @$ = @1; ast_root = program($1); 
+              @$ = @1;
+              ast_root = program($1);
             };
     
     class_list  : class			/* single class */
                 { 
                   $$ = single_Classes($1);
-                  parse_results = $$; 
+                  parse_results = $$;
                 }
-    
                 | class_list class	/* several classes */
                 { 
-                  $$ = append_Classes($1,single_Classes($2)); 
+                  $$ = append_Classes($1, single_Classes($2));
                   parse_results = $$; 
                 };
     
     /* If no parent is specified, the class inherits from the Object class. */
     class	: CLASS TYPEID '{' feature_list '}' ';'
           { 
-            $$ = class_($2,idtable.add_string("Object"),$4,
-            stringtable.add_string(curr_filename)); 
+            $$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
           }
-          
           | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
           { 
-            $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); 
+            $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
           };
     
     /* Feature list may be empty, but no empty features in list. */
     feature_list : nonempty_feature_list
                 { $$ = $1; }
-
                 |
-                { $$ = nil_Features(); }
-
-                //| error
-                ;
+                { $$ = nil_Features(); };
 
     nonempty_feature_list : feature ';' nonempty_feature_list
                           { $$ = append_Features(single_Features($1), $3); }
-
                           | feature ';'
-                          { $$ = single_Features($1); }
-                          
-                          //| error
-                          ;
+                          { $$ = single_Features($1); };
 
-    // feature
     feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' nonempty_expression '}'
             { $$ = method($1, $3, $6, $8); }
-
             | OBJECTID ':' TYPEID
             { $$ = attr($1, $3, no_expr()); }
-
             | OBJECTID ':' TYPEID ASSIGN expression
             { $$ = attr($1, $3, $5); }
+            | error;
 
-            | error
-            ;
+    formal: OBJECTID ':' TYPEID 
+          { $$ = formal($1, $3); };
     
-    formal_list :           { };  /* TODO */
-    expression :            { };  /* TODO */
+    nonempty_formal_list  : formal ',' nonempty_formal_list
+                          {
+                            $$ = append_Formals(single_Formals($1), $3);
+                          }
+                          | formal 
+                          {
+                            $$ = single_Formals($1);
+                          };
+
+    formal_list : nonempty_formal_list
+                {
+                  $$ = $1;
+                }
+                |
+                {
+                  $$ = nil_Formals();
+                };
+
+    expression          :            { };  /* TODO */
     nonempty_expression :   { };  /* TODO */
     
     /* end of grammar */
