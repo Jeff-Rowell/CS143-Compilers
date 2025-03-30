@@ -51,7 +51,7 @@
       // Set the line number of the current non-terminal:
       // ***********************************************
       // You can access the line numbers of the i'th item with @i, just
-      // like you acess the value of the i'th exporession with $i.
+      // like you acess the value of the i'th expression with $i.
       //
       // Here, we choose the line number of the last INT_CONST (@3) as the
       // line number of the resulting expression (@$). You are free to pick
@@ -80,7 +80,7 @@
     /************************************************************************/
     /*                DONT CHANGE ANYTHING IN THIS SECTION                  */
     
-    Program ast_root;	      /* the result of the parse  */
+    Program ast_root;	            /* the result of the parse  */
     Classes parse_results;        /* for use in semantic analysis */
     int omerrs = 0;               /* number of errors in lexing and parsing */
     %}
@@ -132,10 +132,13 @@
     /* Declare types for the grammar's non-terminals. */
     %type <program> program
     %type <classes> class_list
-    %type <class_> class
-    
-    /* You will want to change the following line. */
-    %type <features> dummy_feature_list
+    %type <class_>  class
+    %type <feature>     feature
+    %type <features>    feature_list
+    %type <features>    nonempty_feature_list
+    %type <formals>     formal_list
+    %type <expression>  expression
+    %type <expression>  nonempty_expression
     
     /* Precedence declarations go here. */
     
@@ -144,30 +147,70 @@
     /* 
     Save the root of the abstract syntax tree in a global variable.
     */
-    program	: class_list	{ @$ = @1; ast_root = program($1); }
-    ;
+    program	: class_list
+            { 
+              @$ = @1; ast_root = program($1); 
+            };
     
-    class_list
-    : class			/* single class */
-    { $$ = single_Classes($1);
-    parse_results = $$; }
-    | class_list class	/* several classes */
-    { $$ = append_Classes($1,single_Classes($2)); 
-    parse_results = $$; }
-    ;
+    class_list  : class			/* single class */
+                { 
+                  $$ = single_Classes($1);
+                  parse_results = $$; 
+                }
+    
+                | class_list class	/* several classes */
+                { 
+                  $$ = append_Classes($1,single_Classes($2)); 
+                  parse_results = $$; 
+                };
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
-    { $$ = class_($2,idtable.add_string("Object"),$4,
-    stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
-    { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-    ;
+    class	: CLASS TYPEID '{' feature_list '}' ';'
+          { 
+            $$ = class_($2,idtable.add_string("Object"),$4,
+            stringtable.add_string(curr_filename)); 
+          }
+          
+          | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+          { 
+            $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); 
+          };
     
     /* Feature list may be empty, but no empty features in list. */
-    dummy_feature_list:		/* empty */
-    {  $$ = nil_Features(); }
+    feature_list : nonempty_feature_list
+                { $$ = $1; }
+
+                |
+                { $$ = nil_Features(); }
+
+                //| error
+                ;
+
+    nonempty_feature_list : feature ';' nonempty_feature_list
+                          { $$ = append_Features(single_Features($1), $3); }
+
+                          | feature ';'
+                          { $$ = single_Features($1); }
+                          
+                          //| error
+                          ;
+
+    // feature
+    feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' nonempty_expression '}'
+            { $$ = method($1, $3, $6, $8); }
+
+            | OBJECTID ':' TYPEID
+            { $$ = attr($1, $3, no_expr()); }
+
+            | OBJECTID ':' TYPEID ASSIGN expression
+            { $$ = attr($1, $3, $5); }
+
+            | error
+            ;
     
+    formal_list :           { };  /* TODO */
+    expression :            { };  /* TODO */
+    nonempty_expression :   { };  /* TODO */
     
     /* end of grammar */
     %%

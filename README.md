@@ -131,6 +131,7 @@ sudo apt-get install gcc-multilib
 1. [Programming Assignment 1](https://web.stanford.edu/class/cs143/handouts/PA1.pdf)
     * [My Solution](./assignments/programming/PA1/)
 2. [Programming Assignment 2](https://web.stanford.edu/class/cs143/handouts/PA2.pdf)
+    * [My Solution](./assignments/programming/PA2/)
 3. [Programming Assignment 3](https://web.stanford.edu/class/cs143/handouts/PA3.pdf)
 4. [Programming Assignment 4](https://web.stanford.edu/class/cs143/handouts/PA4.pdf)
 5. [Programming Assignment 5](https://web.stanford.edu/class/cs143/handouts/PA5.pdf)
