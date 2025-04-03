@@ -129,17 +129,18 @@ value of each non terminal. (See section 3.6 in the bison
 documentation for details). */
 
 /* Declare types for the grammar's non-terminals. */
-%type <program> program
-%type <classes> class_list
-%type <class_>  class
-%type <feature>     feature
-%type <features>    feature_list
-%type <features>    nonempty_feature_list
-%type <formal>      formal
-%type <formals>     formal_list
-%type <formals>     nonempty_formal_list
-%type <expression>  expression
-%type <expression>  nonempty_expression
+%type <program>         program
+%type <classes>         class_list
+%type <class_>          class
+%type <feature>         feature
+%type <features>        feature_list
+%type <features>        nonempty_feature_list
+%type <formal>          formal
+%type <formals>         formal_list
+%type <formals>         nonempty_formal_list
+%type <expression>      expression
+%type <expressions>     expression_list
+%type <expression>      nonempty_expression
 
 /* Precedence declarations go here. */
 
@@ -168,20 +169,20 @@ class_list  : class			/* single class */
 /* If no parent is specified, the class inherits from the Object class. */
 class	: CLASS TYPEID '{' feature_list '}' ';'
         { 
-        $$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
+            $$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
         }
         | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
         { 
-        $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
+            $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
         };
 
 /* Feature list may be empty, but no empty features in list. */
-feature_list : nonempty_feature_list
-            { $$ = $1; }
-            |
-            { $$ = nil_Features(); };
+feature_list    : nonempty_feature_list
+                { $$ = $1; }
+                |
+                { $$ = nil_Features(); };
 
-nonempty_feature_list : feature ';' nonempty_feature_list
+nonempty_feature_list   : feature ';' nonempty_feature_list
                         { $$ = append_Features(single_Features($1), $3); }
                         | feature ';'
                         { $$ = single_Features($1); };
@@ -192,12 +193,12 @@ feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' nonempty_expression '}'
         { $$ = attr($1, $3, no_expr()); }
         | OBJECTID ':' TYPEID ASSIGN expression
         { $$ = attr($1, $3, $5); }
-        | error;
+        ;
 
-formal: OBJECTID ':' TYPEID 
+formal  : OBJECTID ':' TYPEID 
         { $$ = formal($1, $3); };
 
-nonempty_formal_list  : formal ',' nonempty_formal_list
+nonempty_formal_list    : formal ',' nonempty_formal_list
                         {
                         $$ = append_Formals(single_Formals($1), $3);
                         }
@@ -215,7 +216,7 @@ formal_list : nonempty_formal_list
                 $$ = nil_Formals();
             };
 
-expression  : OBJECTID ASSIGN nonempty_expression
+expression  : nonempty_expression
             {
                 $$ = $1;
             }
@@ -224,7 +225,40 @@ expression  : OBJECTID ASSIGN nonempty_expression
                 $$ = no_expr();
             };
 
-nonempty_expression :   { };  /* TODO */
+expression_list : expression_list ',' nonempty_expression 
+                {
+                    $$ = nil_Expressions();
+                }
+
+nonempty_expression :  OBJECTID ASSIGN nonempty_expression 
+                    { 
+                        /*
+                         * constructor assign(name : Symbol; expr : Expression) : Expression;
+                         */
+                        $$ = assign($1, $3);
+                    }
+                    | nonempty_expression '@' TYPEID '.' OBJECTID '(' expression_list ')' 
+                    {
+                        /*
+                         * constructor static_dispatch(expr: Expression; type_name : Symbol; name : Symbol; actual : Expressions) : Expression;
+                        */
+                        $$ = static_dispatch($1, $3, $5, $7);
+                    }
+                    | OBJECTID '(' expression_list ')'
+                    {
+                        /*
+                         * constructor dispatch(expr: Expression; name : Symbol; actual : Expressions) : Expression;
+                        */
+                        $$ = dispatch(object(idtable.add_string("self"), $1, $3));
+                    }
+                    | IF nonempty_expression THEN nonempty_expression ELSE nonempty_expression FI
+                    {
+                        /*
+                         * constructor cond(pred, then_exp, else_exp : Expression): Expression;
+                         */
+                        $$ = cond($2, $4, $6);
+                    } /* TODO: finish the expression definitions */
+                    ;
 
 /* end of grammar */
 %%
