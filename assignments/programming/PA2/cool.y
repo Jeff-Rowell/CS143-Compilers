@@ -141,6 +141,8 @@ documentation for details). */
 %type <expression>      expression
 %type <expressions>     expression_list
 %type <expression>      nonempty_expression
+%type <expression>      block
+%type <expression>      let
 
 /* Precedence declarations go here. */
 
@@ -230,6 +232,16 @@ expression_list : expression_list ',' nonempty_expression
                     $$ = nil_Expressions();
                 }
 
+block   : nonempty_expression ';'
+        {
+            $$ = single_Expresssions($1);
+        }
+        | nonempty_expression ';' block
+        {
+            $$ = append_Expressions(single_Expressions($1), $3);
+        }
+        ;
+
 nonempty_expression :  OBJECTID ASSIGN nonempty_expression 
                     { 
                         /*
@@ -257,8 +269,56 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                          * constructor cond(pred, then_exp, else_exp : Expression): Expression;
                          */
                         $$ = cond($2, $4, $6);
-                    } /* TODO: finish the expression definitions */
+                    } 
+                    | WHILE nonempty_expression LOOP expression POOL
+                    {
+                        /*
+                         * constructor loop(pred, body: Expression) : Expression;
+                         */
+                        $$ = loop($2, $4);
+                    }
+                    | '{' block '}'
+                    {
+                        /*
+                         * constructor block(body: Expressions) : Expression;
+                         */
+                        $$ = block($2);
+                    }
+                    | LET let
+                    {
+                        $$ = $2;
+                    }
+                    /* TODO: finish the expression definitions */
                     ;
+/*
+ * let ID : TYPE [ <- expr ] [[,ID : TYPE [ <- expr ] ]]∗ in expr
+ * 
+ * Possible states:
+ *  - let ID : TYPE in expr
+ *  - let ID : TYPE <- expr in expr
+ *  - let ID : TYPE , ID : TYPE <- expr in expr
+ *  - let ID : TYPE <- expr , ID : TYPE <- expr in expr
+ *
+ * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
+ */
+let : OBJECTID ':' TYPEID IN nonempty_expression
+    {
+        $$ = let($1, $3, no_expr(), $5);
+    }
+    | OBJECTID ':' TYPEID ASSIGN nonempty_expression IN expression
+    {
+        $$ = let($1, $3, $5, $7);        
+    }
+    | OBJECTID ':' TYPEID ',' let
+    {
+        $$ = let ($1, $3, no_expr(), $5);
+    }
+    | OBJECTID ':' TYPEID ASSIGN nonempty_expression ',' let
+    {
+        $$ let($1, $3, $5, $7);
+    }
+    ;
+
 
 /* end of grammar */
 %%
