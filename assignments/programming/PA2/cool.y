@@ -231,8 +231,17 @@ expression  : nonempty_expression
 
 expression_list : expression_list ',' nonempty_expression 
                 {
+                    $$ = append_Expressions($1, single_Expressions($3));
+                }
+                | nonempty_expression
+                {
+                    $$ = single_Expressions($1);
+                }
+                |
+                {
                     $$ = nil_Expressions();
                 }
+                ;
 
 block   : nonempty_expression ';'
         {
@@ -318,7 +327,7 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                         /*
                          * constructor dispatch(expr: Expression; name : Symbol; actual : Expressions) : Expression;
                          */
-                        $$ = dispatch(object(idtable.add_string("self"), $1, $3));
+                        $$ = dispatch(object(idtable.add_string("self")), $1, $3);
                     }
                     | IF nonempty_expression THEN nonempty_expression ELSE nonempty_expression FI
                     {
@@ -415,7 +424,6 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                     {
                         $$ = bool_const($1);
                     }
-                    /* TODO: finish the expression definitions */
                     ;
 
 /* end of grammar */
