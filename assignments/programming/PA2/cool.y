@@ -143,6 +143,8 @@ documentation for details). */
 %type <expression>      nonempty_expression
 %type <expression>      block
 %type <expression>      let
+%type <case_>           branch
+%type <cases>           case_list
 
 /* Precedence declarations go here. */
 
@@ -242,6 +244,25 @@ block   : nonempty_expression ';'
         }
         ;
 
+branch      : OBJECTID ':' TYPEID DARROW expression 
+            {
+                /*
+                 * constructor branch(name, type_decl: Symbol; expr: Expression): Case;
+                 */
+                $$ = branch($1, $3, $5);
+            }
+            ;
+
+case_list  : case_list branch ';'
+            {
+                $$ = append_Cases(single_Cases($1), $2);
+            }
+            | branch ';'
+            {
+                $$ = single_Cases($1);
+            }
+            ;
+
 nonempty_expression :  OBJECTID ASSIGN nonempty_expression 
                     { 
                         /*
@@ -287,6 +308,16 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                     | LET let
                     {
                         $$ = $2;
+                    }
+                    /*
+                     * case expr of [[ID : TYPE => expr; ]]+ esac
+                     */
+                    | CASE nonempty_expression OF case_list ESAC
+                    {
+                        /*
+                         * constructor typcase(expr: Expression; cases: Cases): Expression;
+                         */
+                        $$ = typcase($2, $4);
                     }
                     /* TODO: finish the expression definitions */
                     ;
