@@ -141,7 +141,7 @@ documentation for details). */
 %type <expression>      expression
 %type <expressions>     expression_list
 %type <expression>      nonempty_expression
-%type <expression>      block
+%type <expressions>     block
 %type <expression>      let
 %type <case_>           branch
 %type <cases>           case_list
@@ -236,13 +236,42 @@ expression_list : expression_list ',' nonempty_expression
 
 block   : nonempty_expression ';'
         {
-            $$ = single_Expresssions($1);
+            $$ = single_Expressions($1);
         }
         | nonempty_expression ';' block
         {
             $$ = append_Expressions(single_Expressions($1), $3);
         }
         ;
+
+/*
+ * let ID : TYPE [ <- expr ] [[,ID : TYPE [ <- expr ] ]]∗ in expr
+ * 
+ * Possible states:
+ *  - let ID : TYPE in expr
+ *  - let ID : TYPE <- expr in expr
+ *  - let ID : TYPE , ID : TYPE <- expr in expr
+ *  - let ID : TYPE <- expr , ID : TYPE <- expr in expr
+ *
+ * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
+ */
+let : OBJECTID ':' TYPEID IN expression
+    {
+        $$ = let($1, $3, no_expr(), $5);
+    }
+    | OBJECTID ':' TYPEID ASSIGN expression IN expression
+    {
+        $$ = let($1, $3, $5, $7);        
+    }
+    | OBJECTID ':' TYPEID ',' let
+    {
+        $$ = let ($1, $3, no_expr(), $5);
+    }
+    | OBJECTID ':' TYPEID ASSIGN expression ',' let
+    {
+        $$ = let($1, $3, $5, $7);
+    }
+    ;
 
 branch      : OBJECTID ':' TYPEID DARROW expression 
             {
@@ -255,7 +284,7 @@ branch      : OBJECTID ':' TYPEID DARROW expression
 
 case_list  : case_list branch ';'
             {
-                $$ = append_Cases(single_Cases($1), $2);
+                $$ = append_Cases($1, single_Cases($2));
             }
             | branch ';'
             {
@@ -270,6 +299,13 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                          */
                         $$ = assign($1, $3);
                     }
+                    | nonempty_expression '.' OBJECTID '(' expression_list ')' 
+                    {
+                        /*
+                         * constructor dispatch(expr: Expression; name : Symbol; actual : Expressions) : Expression;
+                         */
+                        $$ = dispatch($1, $3, $5);
+                    }
                     | nonempty_expression '@' TYPEID '.' OBJECTID '(' expression_list ')' 
                     {
                         /*
@@ -281,7 +317,7 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                     {
                         /*
                          * constructor dispatch(expr: Expression; name : Symbol; actual : Expressions) : Expression;
-                        */
+                         */
                         $$ = dispatch(object(idtable.add_string("self"), $1, $3));
                     }
                     | IF nonempty_expression THEN nonempty_expression ELSE nonempty_expression FI
@@ -319,37 +355,68 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                          */
                         $$ = typcase($2, $4);
                     }
+                    | NEW TYPEID
+                    {
+                        $$ = new_($2);
+                    }
+                    | ISVOID nonempty_expression
+                    {
+                        $$ = isvoid($2);
+                    }
+                    | nonempty_expression '+' nonempty_expression
+                    {
+                        $$ = plus($1, $3);
+                    }
+                    | nonempty_expression '-' nonempty_expression
+                    {
+                        $$ = sub($1, $3);
+                    }
+                    | nonempty_expression '*' nonempty_expression
+                    {
+                        $$ = mul($1, $3);
+                    }
+                    | nonempty_expression '/' nonempty_expression
+                    {
+                        $$ = divide($1, $3);
+                    }
+                    | '~' nonempty_expression
+                    {
+                        $$ = neg($2);
+                    }
+                    | nonempty_expression '<' nonempty_expression
+                    {
+                        $$ = lt($1, $3);
+                    }
+                    | nonempty_expression LE nonempty_expression
+                    {
+                        $$ = leq($1, $3);
+                    }
+                    | nonempty_expression '=' nonempty_expression
+                    {
+                        $$ = eq($1, $3);
+                    }
+                    | NOT nonempty_expression
+                    {
+                        $$ = comp($2);
+                    }
+                    | '(' nonempty_expression ')'
+                    {
+                        $$ = $2;
+                    }
+                    | INT_CONST
+                    {
+                        $$ = int_const($1);
+                    }
+                    | STR_CONST
+                    {
+                        $$ = string_const($1);
+                    }
+                    | BOOL_CONST
+                    {
+                        $$ = bool_const($1);
+                    }
                     /* TODO: finish the expression definitions */
                     ;
-/*
- * let ID : TYPE [ <- expr ] [[,ID : TYPE [ <- expr ] ]]∗ in expr
- * 
- * Possible states:
- *  - let ID : TYPE in expr
- *  - let ID : TYPE <- expr in expr
- *  - let ID : TYPE , ID : TYPE <- expr in expr
- *  - let ID : TYPE <- expr , ID : TYPE <- expr in expr
- *
- * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
- */
-let : OBJECTID ':' TYPEID IN nonempty_expression
-    {
-        $$ = let($1, $3, no_expr(), $5);
-    }
-    | OBJECTID ':' TYPEID ASSIGN nonempty_expression IN expression
-    {
-        $$ = let($1, $3, $5, $7);        
-    }
-    | OBJECTID ':' TYPEID ',' let
-    {
-        $$ = let ($1, $3, no_expr(), $5);
-    }
-    | OBJECTID ':' TYPEID ASSIGN nonempty_expression ',' let
-    {
-        $$ let($1, $3, $5, $7);
-    }
-    ;
-
 
 /* end of grammar */
 %%
