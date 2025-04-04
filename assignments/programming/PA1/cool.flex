@@ -102,6 +102,7 @@ INVALID                 ['|\[|\]>]
 [,] {return ',';}
 [=] {return '=';}
 [<] {return '<';}
+[<=] {return LE;}
 
  /*
   *  Keeps track of the curent line number being scanned
