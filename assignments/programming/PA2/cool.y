@@ -178,18 +178,30 @@ class	: CLASS TYPEID '{' feature_list '}' ';'
         | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
         { 
             $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
-        };
+        }
+        | error '}' ';'
+        ;
 
 /* Feature list may be empty, but no empty features in list. */
 feature_list    : nonempty_feature_list
-                { $$ = $1; }
+                { 
+                    $$ = $1; 
+                }
                 |
-                { $$ = nil_Features(); };
+                { 
+                    $$ = nil_Features(); 
+                }
+                ;
 
 nonempty_feature_list   : feature ';' nonempty_feature_list
-                        { $$ = append_Features(single_Features($1), $3); }
+                        { 
+                            $$ = append_Features(single_Features($1), $3); 
+                        }
                         | feature ';'
-                        { $$ = single_Features($1); };
+                        { 
+                            $$ = single_Features($1); 
+                        }
+                        ;
 
 feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' nonempty_expression '}'
         { $$ = method($1, $3, $6, $8); }
@@ -197,6 +209,8 @@ feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' nonempty_expression '}'
         { $$ = attr($1, $3, no_expr()); }
         | OBJECTID ':' TYPEID ASSIGN expression
         { $$ = attr($1, $3, $5); }
+        |
+        error
         ;
 
 formal  : OBJECTID ':' TYPEID 
@@ -227,7 +241,8 @@ expression  : nonempty_expression
             |
             {
                 $$ = no_expr();
-            };
+            }
+            ;
 
 expression_list : expression_list ',' nonempty_expression 
                 {
@@ -251,6 +266,7 @@ block   : nonempty_expression ';'
         {
             $$ = append_Expressions(single_Expressions($1), $3);
         }
+        | error
         ;
 
 /*
@@ -274,7 +290,7 @@ let : OBJECTID ':' TYPEID IN expression
     }
     | OBJECTID ':' TYPEID ',' let
     {
-        $$ = let ($1, $3, no_expr(), $5);
+        $$ = let($1, $3, no_expr(), $5);
     }
     | OBJECTID ':' TYPEID ASSIGN expression ',' let
     {
@@ -424,6 +440,7 @@ nonempty_expression :  OBJECTID ASSIGN nonempty_expression
                     {
                         $$ = bool_const($1);
                     }
+                    | error
                     ;
 
 /* end of grammar */
