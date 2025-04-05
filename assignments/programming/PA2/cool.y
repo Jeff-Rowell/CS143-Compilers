@@ -147,7 +147,15 @@ documentation for details). */
 %type <cases>           case_list
 
 /* Precedence declarations go here. */
-
+%left ASSIGN
+%left NOT
+%nonassoc LE '<' '='
+%left '+' '-'
+%left '*' '/'
+%left ISVOID
+%left '~'
+%left '@'
+%left '.'
 
 %%
 /* 
@@ -168,7 +176,8 @@ class_list  : class			/* single class */
             { 
                 $$ = append_Classes($1, single_Classes($2));
                 parse_results = $$; 
-            };
+            }
+            ;
 
 /* If no parent is specified, the class inherits from the Object class. */
 class	: CLASS TYPEID '{' feature_list '}' ';'
@@ -179,7 +188,7 @@ class	: CLASS TYPEID '{' feature_list '}' ';'
         { 
             $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
         }
-        | error '}' ';'
+        | error ';'
         ;
 
 /* Feature list may be empty, but no empty features in list. */
