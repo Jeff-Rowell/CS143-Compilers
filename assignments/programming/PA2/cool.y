@@ -130,45 +130,144 @@
     documentation for details). */
     
     /* Declare types for the grammar's non-terminals. */
-    %type <program> program
-    %type <classes> class_list
-    %type <class_> class
-    
-    /* You will want to change the following line. */
-    %type <features> dummy_feature_list
+    %type <program>          program
+    %type <classes>          class_list
+    %type <class_>           class
+    %type <feature>          attr
+    %type <feature>          method
+    %type <feature>          feature
+    %type <features>         feature_list
+    %type <expression>       expr
+    %type <formal>           formal
+    %type <formals>          formal_list
     
     /* Precedence declarations go here. */
     
     
     %%
     /* 
-    Save the root of the abstract syntax tree in a global variable.
+     * Save the root of the abstract syntax tree in a global variable.
+     *
+     * program ::= [[class; ]]+
+     *
+     */
+    program	: class_list	
+            { 
+                @$ = @1; ast_root = program($1); 
+            };
+    
+    class_list  : class			/* single class */
+                { 
+                    $$ = single_Classes($1);
+                    parse_results = $$; 
+                }
+                | class_list class	/* several classes */
+                {
+                    $$ = append_Classes($1, single_Classes($2)); 
+                    parse_results = $$; 
+                };
+    
+    /* 
+     * If no parent is specified, the class inherits from the Object class. 
+     *
+     * class ::= class TYPE [inherits TYPE] { [[feature; ]]∗ }
+     *
+     */
+    class	: CLASS TYPEID '{' feature_list '}' ';'
+            { 
+                $$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
+            }
+            | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+            { 
+                $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
+            };
+    
+    /*
+     *      ID( [ formal [[, formal]]∗ ] ) : TYPE { expr }
+     * 
+     *   -- Features:
+     *   constructor method(name : Symbol; formals : Formals; return_type : Symbol; expr: Expression) : Feature;
+     */
+    method : OBJECTID '(' ')' ':' TYPEID '{' expr '}'
+            {
+                $$ = method($1, nil_Formals(), $5, $7);
+            }
+            | OBJECTID '(' formal ')' ':' TYPEID '{' expr '}'
+            {
+                $$ = method($1, single_Formals($3), $6, $8);
+            }
+            | OBJECTID '(' formal ',' formal_list ')' ':' TYPEID '{' expr '}'
+            {
+                $$ = method($1, append_Formals(single_Formals($3), $5), $8, $10);
+            }
+            ;
+    /*
+     *   ID : TYPE [ <- expr ]
+     * 
+     *   -- Features:
+     *   constructor attr(name, type_decl : Symbol; init : Expression) : Feature;
+     */
+    attr    : OBJECTID ':' TYPEID
+            {
+                $$ = attr($1, $3, no_expr());
+            }
+            | OBJECTID ':' TYPEID ASSIGN expr
+            {
+                $$ = attr($1, $3, $5);
+            };
+
+    /*
+     * formal ::= ID : TYPE
+     * 
+     *   -- Formals
+     *   constructor formal(name, type_decl: Symbol) : Formal;
+     */
+    formal  : OBJECTID ':' TYPEID
+            {
+                $$ = formal($1, $3);
+            };
+
+    formal_list : formal
+                {
+                    $$ = single_Formals($1);
+                }
+                | formal_list formal
+                {
+                    $$ = append_Formals($1, single_Formals($2));
+                }
+                |
+                {
+                    $$ = nil_Formals();
+                };
+
+    /*
+    *   feature ::= ID( [ formal [[, formal]]∗] ) : TYPE { expr }
+    *               | ID : TYPE [ <- expr ]
     */
-    program	: class_list	{ @$ = @1; ast_root = program($1); }
-    ;
-    
-    class_list
-    : class			/* single class */
-    { $$ = single_Classes($1);
-    parse_results = $$; }
-    | class_list class	/* several classes */
-    { $$ = append_Classes($1,single_Classes($2)); 
-    parse_results = $$; }
-    ;
-    
-    /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
-    { $$ = class_($2,idtable.add_string("Object"),$4,
-    stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
-    { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-    ;
-    
+    feature : method
+            {
+                $$ = $1;
+            }
+            | attr
+            {
+                $$ = $1;
+            };
+
     /* Feature list may be empty, but no empty features in list. */
-    dummy_feature_list:		/* empty */
-    {  $$ = nil_Features(); }
+    feature_list    : feature
+                    {
+                        $$ = single_Features($1);
+                    }
+                    | feature_list feature
+                    {
+                        $$ = append_Features($1, single_Features($2));
+                    }
+                    |
+                    {  
+                        $$ = nil_Features(); 
+                    };
     
-    
+    expr    : {};
     /* end of grammar */
     %%
     
@@ -185,5 +284,4 @@
       
       if(omerrs>50) {fprintf(stdout, "More than 50 errors\n"); exit(1);}
     }
-    
     
