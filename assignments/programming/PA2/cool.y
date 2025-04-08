@@ -138,6 +138,10 @@
     %type <feature>          feature
     %type <features>         feature_list
     %type <expression>       expr
+    %type <expressions>      expr_list
+    %type <expression>       assign
+    %type <expression>       static_dispatch
+    %type <expression>       dispatch
     %type <formal>           formal
     %type <formals>          formal_list
     
@@ -231,9 +235,9 @@
                 {
                     $$ = single_Formals($1);
                 }
-                | formal_list formal
+                | formal_list ',' formal // unsure about this
                 {
-                    $$ = append_Formals($1, single_Formals($2));
+                    $$ = append_Formals($1, single_Formals($3));
                 }
                 |
                 {
@@ -266,8 +270,114 @@
                     {  
                         $$ = nil_Features(); 
                     };
-    
-    expr    : {};
+
+    /*
+     * ID <- expr
+     * 
+     * constructor assign(name : Symbol; expr : Expression) : Expression;
+     */
+    assign  : OBJECTID ASSIGN expr
+            {
+                $$ = assign($1, $3);
+            };
+
+    /*
+     * expr[@TYPE].ID( [ expr [[, expr]]∗ ] )
+     *
+     * expr@TYPE.ID()
+     * expr@TYPE.ID( expr )
+     * expr@TYPE.ID( expr, expr_list )
+     *
+     * constructor static_dispatch(expr: Expression; type_name : Symbol; name : Symbol; actual : Expressions) : Expression;
+     */
+    static_dispatch : expr '@' TYPEID '.' OBJECTID '(' ')'
+                    {
+                        $$ = static_dispatch($1, $3, $5, nil_Expressions());
+                    }
+                    | expr '@' TYPEID '.' OBJECTID '(' expr ')'
+                    {
+                        $$ = static_dispatch($1, $3, $5, single_Expressions($7));
+                    }
+                    | expr '@' TYPEID '.' OBJECTID '(' expr ',' expr_list ')'
+                    {
+                        $$ = static_dispatch($1, $3, $5, append_Expressions(single_Expressions($7), $9));
+                    };
+
+    /*
+     * expr[@TYPE].ID( [ expr [[, expr]]∗ ] )
+     *
+     * expr.ID()
+     * expr.ID( expr )
+     * expr.ID( expr, expr_list )
+     *
+     * constructor dispatch(expr : Expression; name : Symbol; actual : Expressions) : Expression;
+     */   
+    dispatch    : expr '.' OBJECTID '(' ')'
+                {
+                    $$ = dispatch($1, $3, nil_Expressions());
+                }
+                | expr '.' OBJECTID '(' expr ')'
+                {
+                    $$ = dispatch($1, $3, single_Expressions($5));
+                }
+                | expr '.' OBJECTID '(' expr ',' expr_list ')'
+                {
+                    $$ = dispatch($1, $3, append_Expressions(single_Expressions($5), $7));
+                };
+  
+    expr_list   : expr
+                {
+                    $$ = single_Expressions($1);
+                }
+                | expr_list ',' expr // unsure about this
+                {
+                    $$ = append_Expressions($1, single_Expressions($3));
+                }
+                |
+                {  
+                    $$ = nil_Expressions(); 
+                };
+
+    /*
+     * expr ::= ID <- expr
+     *      | expr[@TYPE].ID( [ expr [[, expr]]∗ ] )
+     *      | ID( [ expr [[, expr]]∗ ] )
+     *      | if expr then expr else expr fi
+     *      | while expr loop expr pool
+     *      | { [[expr; ]]+}
+     *      | let ID : TYPE [ <- expr ] [[,ID : TYPE [ <- expr ]]]∗ in expr
+     *      | case expr of [[ID : TYPE => expr; ]]+ esac
+     *      | new TYPE
+     *      | isvoid expr
+     *      | expr + expr
+     *      | expr − expr
+     *      | expr ∗ expr
+     *      | expr / expr
+     *      | ∼expr
+     *      | expr < expr
+     *      | expr <= expr
+     *      | expr = expr
+     *      | not expr
+     *      | (expr)
+     *      | ID
+     *      | integer
+     *      | string
+     *      | true
+     *      | false
+     */
+    expr    : assign
+            {
+                $$ = $1;
+            }
+            | static_dispatch 
+            {
+                $$ = $1;
+            }
+            | dispatch
+            {
+                $$ = $1;
+            };
+
     /* end of grammar */
     %%
     
