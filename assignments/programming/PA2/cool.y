@@ -262,9 +262,9 @@
                     {
                         $$ = single_Features($1);
                     }
-                    | feature_list feature
+                    | feature_list ',' feature // unsure about this
                     {
-                        $$ = append_Features($1, single_Features($2));
+                        $$ = append_Features($1, single_Features($3));
                     }
                     |
                     {  
@@ -376,6 +376,10 @@
             | dispatch
             {
                 $$ = $1;
+            }
+            | IF expr THEN expr ELSE expr FI
+            {
+                $$ = cond($2, $4, $6);
             };
 
     /* end of grammar */
