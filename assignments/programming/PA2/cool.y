@@ -139,6 +139,7 @@
     %type <features>         feature_list
     %type <expression>       expr
     %type <expressions>      expr_list
+    %type <expressions>      inner_block
     %type <expression>       assign
     %type <expression>       static_dispatch
     %type <expression>       dispatch
@@ -337,6 +338,15 @@
                 {  
                     $$ = nil_Expressions(); 
                 };
+  
+    inner_block : expr ';'
+                {
+                    $$ = single_Expressions($1);
+                }
+                |  expr ';' inner_block
+                {
+                    $$ = append_Expressions($1, single_Expressions($3));
+                };
 
     /*
      * expr ::= ID <- expr
@@ -380,6 +390,14 @@
             | IF expr THEN expr ELSE expr FI
             {
                 $$ = cond($2, $4, $6);
+            }
+            | WHILE expr LOOP expr POOL
+            {
+                $$ = loop($2, $4);
+            }
+            | '{' inner_block '}'
+            {
+                $$ = block($2);
             };
 
     /* end of grammar */
