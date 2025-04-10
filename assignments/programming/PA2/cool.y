@@ -143,6 +143,8 @@
     %type <expression>       assign
     %type <expression>       static_dispatch
     %type <expression>       dispatch
+    %type <expression>       let
+    %type <expression>       let_identifiers
     %type <formal>           formal
     %type <formals>          formal_list
     
@@ -349,6 +351,46 @@
                 };
 
     /*
+     * let ID : TYPE [ <- expr ] [[ ,ID : TYPE [ <- expr ] ]]∗ in expr
+     *
+     * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
+     *
+     */
+    let : OBJECTID ':' TYPEID IN expr
+        {
+            $$ = let($1, $3, no_expr(), no_expr());
+        }
+        | OBJECTID ':' TYPEID ASSIGN expr IN expr
+        {
+            $$ = let($1, $3, $5, no_expr());
+        }
+        | OBJECTID ':' TYPEID ASSIGN expr let_identifiers IN expr
+        {
+            $$ = let($1, $3, $5, no_expr());
+        }
+        | OBJECTID ':' TYPEID ASSIGN expr let_identifiers ASSIGN expr IN expr
+        {
+            $$ = let($1, $3, $5, $8);
+        }
+        | OBJECTID ':' TYPEID let_identifiers IN expr
+        {
+            $$ = let($1, $3, no_expr(), no_expr());
+        }
+        | OBJECTID ':' TYPEID let_identifiers ASSIGN expr IN expr
+        {
+            $$ = let($1, $3, $6, no_expr());
+        };
+
+    let_identifiers : OBJECTID ':' TYPEID
+                    {
+                        $$ = let($1, $3, no_expr(), no_expr());
+                    }
+                    | let_identifiers ',' OBJECTID ':' TYPEID
+                    {
+                        $$ = let($3, $5, no_expr(), no_expr());
+                    };
+
+    /*
      * expr ::= ID <- expr
      *      | expr[@TYPE].ID( [ expr [[, expr]]∗ ] )
      *      | ID( [ expr [[, expr]]∗ ] )
@@ -398,6 +440,10 @@
             | '{' inner_block '}'
             {
                 $$ = block($2);
+            }
+            | let
+            {
+                $$ = $1;
             };
 
     /* end of grammar */
