@@ -147,6 +147,8 @@
     %type <expression>       let_identifiers
     %type <formal>           formal
     %type <formals>          formal_list
+    %type <case_>            branch
+    %type <cases>            case_list
     
     /* Precedence declarations go here. */
     
@@ -391,6 +393,30 @@
                     };
 
     /*
+     * 
+     * ID : TYPE => expr;
+     * 
+     * constructor branch(name, type_decl: Symbol; expr: Expression): Case;
+     *
+     */
+    branch  : OBJECTID ':' TYPEID DARROW expr
+            {
+                $$ = branch($1, $3, $5);
+            };
+
+    /*
+     * [[ID : TYPE => expr; ]]+
+     */ 
+    case_list   : branch  ';'
+                {
+                    $$ = single_Cases($1);
+                }
+                | case_list ';' branch
+                {
+                    $$ = append_Cases($1, single_Cases($3));                    
+                };
+
+    /*
      * expr ::= ID <- expr
      *      | expr[@TYPE].ID( [ expr [[, expr]]∗ ] )
      *      | ID( [ expr [[, expr]]∗ ] )
@@ -444,6 +470,10 @@
             | let
             {
                 $$ = $1;
+            }
+            | CASE expr OF case_list ESAC
+            {
+                $$ = typcase($2, $4);
             };
 
     /* end of grammar */
