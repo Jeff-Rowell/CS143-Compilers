@@ -349,7 +349,7 @@
                 }
                 |  expr ';' inner_block
                 {
-                    $$ = append_Expressions($1, single_Expressions($3));
+                    $$ = append_Expressions($3, single_Expressions($1));
                 };
 
     /*
@@ -474,6 +474,70 @@
             | CASE expr OF case_list ESAC
             {
                 $$ = typcase($2, $4);
+            }
+            | NEW TYPEID
+            {
+                $$ = new_($2);
+            }
+            | ISVOID expr
+            {
+                $$ = isvoid($2);
+            }
+            | expr '+' expr
+            {
+                $$ = plus($1, $3);
+            };
+            | expr '-' expr
+            {
+                $$ = sub($1, $3);
+            };
+            | expr '*' expr
+            {
+                $$ = mul($1, $3);
+            };
+            | expr '/' expr
+            {
+                $$ = divide($1, $3);
+            }
+            | '~' expr
+            {
+                $$ = neg($2);
+            }
+            | expr '<' expr
+            {
+                $$ = lt($1, $3);
+            }
+            | expr LE expr
+            {
+                $$ = leq($1, $3);
+            }
+            | expr '=' expr
+            {
+                $$ = eq($1, $3);
+            }
+            | NOT expr
+            {
+                $$ = comp($2);
+            }
+            | '(' expr ')'
+            {
+                $$ = $2;
+            }
+            | OBJECTID
+            {
+                $$ = object($1);
+            }
+            | INT_CONST
+            {
+                $$ = int_const($1);
+            }
+            | STR_CONST
+            {
+                $$ = string_const($1);
+            }
+            | BOOL_CONST
+            {
+                $$ = bool_const($1);
             };
 
     /* end of grammar */
