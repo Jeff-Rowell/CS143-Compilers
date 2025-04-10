@@ -358,29 +358,29 @@
      * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
      *
      */
-    let : OBJECTID ':' TYPEID IN expr
+    let : LET OBJECTID ':' TYPEID IN expr
         {
-            $$ = let($1, $3, no_expr(), no_expr());
+            $$ = let($2, $4, no_expr(), no_expr());
         }
-        | OBJECTID ':' TYPEID ASSIGN expr IN expr
+        | LET OBJECTID ':' TYPEID ASSIGN expr IN expr
         {
-            $$ = let($1, $3, $5, no_expr());
+            $$ = let($2, $4, $6, no_expr());
         }
-        | OBJECTID ':' TYPEID ASSIGN expr let_identifiers IN expr
+        | LET OBJECTID ':' TYPEID ASSIGN expr let_identifiers IN expr
         {
-            $$ = let($1, $3, $5, no_expr());
+            $$ = let($2, $4, $6, no_expr());
         }
-        | OBJECTID ':' TYPEID ASSIGN expr let_identifiers ASSIGN expr IN expr
+        | LET OBJECTID ':' TYPEID ASSIGN expr let_identifiers ASSIGN expr IN expr
         {
-            $$ = let($1, $3, $5, $8);
+            $$ = let($2, $4, $7, $9);
         }
-        | OBJECTID ':' TYPEID let_identifiers IN expr
+        | LET OBJECTID ':' TYPEID let_identifiers IN expr
         {
-            $$ = let($1, $3, no_expr(), no_expr());
+            $$ = let($2, $4, no_expr(), no_expr());
         }
-        | OBJECTID ':' TYPEID let_identifiers ASSIGN expr IN expr
+        | LET OBJECTID ':' TYPEID let_identifiers ASSIGN expr IN expr
         {
-            $$ = let($1, $3, $6, no_expr());
+            $$ = let($2, $4, $7, no_expr());
         };
 
     let_identifiers : OBJECTID ':' TYPEID
