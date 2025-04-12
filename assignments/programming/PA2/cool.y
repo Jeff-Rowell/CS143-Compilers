@@ -144,13 +144,14 @@
     %type <expression>       static_dispatch
     %type <expression>       dispatch
     %type <expression>       let
-    %type <expression>       let_identifiers
+    %type <expression>       let_binding
     %type <formal>           formal
     %type <formals>          formal_list
     %type <case_>            branch
     %type <cases>            case_list
     
     /* Precedence declarations go here. */
+    %nonassoc IN
     %right ASSIGN
     %left NOT
     %nonassoc LE '<' '='
@@ -366,39 +367,27 @@
      * constructor let(identifier, type_decl: Symbol; init, body: Expression): Expression;
      *
      */
-    let : LET OBJECTID ':' TYPEID IN expr
+    let : LET let_binding
         {
-            $$ = let($2, $4, no_expr(), no_expr());
-        }
-        | LET OBJECTID ':' TYPEID ASSIGN expr IN expr
-        {
-            $$ = let($2, $4, $6, no_expr());
-        }
-        | LET OBJECTID ':' TYPEID ASSIGN expr let_identifiers IN expr
-        {
-            $$ = let($2, $4, $6, no_expr());
-        }
-        | LET OBJECTID ':' TYPEID ASSIGN expr let_identifiers ASSIGN expr IN expr
-        {
-            $$ = let($2, $4, $7, $9);
-        }
-        | LET OBJECTID ':' TYPEID let_identifiers IN expr
-        {
-            $$ = let($2, $4, no_expr(), no_expr());
-        }
-        | LET OBJECTID ':' TYPEID let_identifiers ASSIGN expr IN expr
-        {
-            $$ = let($2, $4, $7, no_expr());
+            $$ = $2;
         };
 
-    let_identifiers : OBJECTID ':' TYPEID
-                    {
-                        $$ = let($1, $3, no_expr(), no_expr());
-                    }
-                    | let_identifiers ',' OBJECTID ':' TYPEID
-                    {
-                        $$ = let($3, $5, no_expr(), no_expr());
-                    };
+    let_binding : OBJECTID ':' TYPEID IN expr
+                {
+                    $$ = let($1, $3, no_expr(), $5);
+                }
+                | OBJECTID ':' TYPEID ASSIGN expr IN expr
+                {
+                    $$ = let($1, $3, $5, $7);
+                }
+                | OBJECTID ':' TYPEID ',' let_binding
+                {
+                    $$ = let($1, $3, no_expr(), $5);
+                }
+                | OBJECTID ':' TYPEID ASSIGN expr ',' let_binding
+                {
+                    $$ = let($1, $3, $5, $7);
+                };
 
     /*
      * 
