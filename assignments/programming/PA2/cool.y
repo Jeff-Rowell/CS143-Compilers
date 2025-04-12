@@ -277,7 +277,7 @@
                     }
                     | feature_list feature
                     {
-                        $$ = append_Features($1, single_Features($3));
+                        $$ = append_Features($1, single_Features($2));
                     }
                     |
                     {  
