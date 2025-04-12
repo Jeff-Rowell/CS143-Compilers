@@ -300,17 +300,9 @@
      *
      * constructor static_dispatch(expr: Expression; type_name : Symbol; name : Symbol; actual : Expressions) : Expression;
      */
-    static_dispatch : expr '@' TYPEID '.' OBJECTID '(' ')'
+    static_dispatch : expr '@' TYPEID '.' OBJECTID '(' expr_list ')'
                     {
-                        $$ = static_dispatch($1, $3, $5, nil_Expressions());
-                    }
-                    | expr '@' TYPEID '.' OBJECTID '(' expr ')'
-                    {
-                        $$ = static_dispatch($1, $3, $5, single_Expressions($7));
-                    }
-                    | expr '@' TYPEID '.' OBJECTID '(' expr ',' expr_list ')'
-                    {
-                        $$ = static_dispatch($1, $3, $5, append_Expressions(single_Expressions($7), $9));
+                        $$ = static_dispatch($1, $3, $5, $7);
                     };
 
     /*
@@ -322,24 +314,16 @@
      *
      * constructor dispatch(expr : Expression; name : Symbol; actual : Expressions) : Expression;
      */   
-    dispatch    : expr '.' OBJECTID '(' ')'
+    dispatch    : expr '.' OBJECTID '(' expr_list ')'
                 {
-                    $$ = dispatch($1, $3, nil_Expressions());
-                }
-                | expr '.' OBJECTID '(' expr ')'
-                {
-                    $$ = dispatch($1, $3, single_Expressions($5));
-                }
-                | expr '.' OBJECTID '(' expr ',' expr_list ')'
-                {
-                    $$ = dispatch($1, $3, append_Expressions(single_Expressions($5), $7));
+                    $$ = dispatch($1, $3, $5);
                 };
   
     expr_list   : expr
                 {
                     $$ = single_Expressions($1);
                 }
-                | expr_list ',' expr // unsure about this
+                | expr_list ',' expr 
                 {
                     $$ = append_Expressions($1, single_Expressions($3));
                 }
