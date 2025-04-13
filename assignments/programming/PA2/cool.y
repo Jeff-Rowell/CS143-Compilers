@@ -83,6 +83,8 @@
     Program ast_root;	      /* the result of the parse  */
     Classes parse_results;        /* for use in semantic analysis */
     int omerrs = 0;               /* number of errors in lexing and parsing */
+
+    Expression no_expr_wrapper();
     %}
     
     /* A union of all the types that can be the result of parsing actions. */
@@ -227,10 +229,7 @@
      */
     attr    : OBJECTID ':' TYPEID
             {
-                node_lineno = 0;
-                Expression result = no_expr();
-                node_lineno = curr_lineno;
-                $$ = attr($1, $3, result);
+                $$ = attr($1, $3, no_expr_wrapper());
             }
             | OBJECTID ':' TYPEID ASSIGN expr
             {
@@ -361,7 +360,7 @@
 
     let_binding : OBJECTID ':' TYPEID IN expr
                 {
-                    $$ = let($1, $3, no_expr(), $5);
+                    $$ = let($1, $3, no_expr_wrapper(), $5);
                 }
                 | OBJECTID ':' TYPEID ASSIGN expr IN expr
                 {
@@ -369,7 +368,7 @@
                 }
                 | OBJECTID ':' TYPEID ',' let_binding
                 {
-                    $$ = let($1, $3, no_expr(), $5);
+                    $$ = let($1, $3, no_expr_wrapper(), $5);
                 }
                 | OBJECTID ':' TYPEID ASSIGN expr ',' let_binding
                 {
@@ -539,5 +538,13 @@
       omerrs++;
       
       if(omerrs>50) {fprintf(stdout, "More than 50 errors\n"); exit(1);}
+    }
+
+    Expression no_expr_wrapper()
+    {
+        node_lineno = 0;
+        Expression result = no_expr();
+        node_lineno = curr_lineno;
+        return result;
     }
     
