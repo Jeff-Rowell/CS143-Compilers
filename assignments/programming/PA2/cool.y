@@ -340,9 +340,9 @@
                 {
                     $$ = single_Expressions($1);
                 }
-                |  expr ';' inner_block
+                |  inner_block expr ';' 
                 {
-                    $$ = append_Expressions($3, single_Expressions($1));
+                    $$ = append_Expressions($1, single_Expressions($2));
                 };
 
     /*
