@@ -227,7 +227,10 @@
      */
     attr    : OBJECTID ':' TYPEID
             {
-                $$ = attr($1, $3, no_expr());
+                node_lineno = 0;
+                Expression result = no_expr();
+                node_lineno = curr_lineno;
+                $$ = attr($1, $3, result);
             }
             | OBJECTID ':' TYPEID ASSIGN expr
             {
