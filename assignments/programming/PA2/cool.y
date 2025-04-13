@@ -317,6 +317,10 @@
     dispatch    : expr '.' OBJECTID '(' expr_list ')'
                 {
                     $$ = dispatch($1, $3, $5);
+                }
+                | OBJECTID '(' expr_list ')'
+                {
+                    $$ = dispatch(object(idtable.add_string("self")), $1, $3);
                 };
   
     expr_list   : expr
