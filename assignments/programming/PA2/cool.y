@@ -200,6 +200,22 @@
             | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
             { 
                 $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
+            }
+            | CLASS TYPEID error '{' feature_list '}' ';'
+            {
+                $$ = NULL;
+            }
+            | CLASS TYPEID '{' feature_list error
+            {
+                $$ = NULL;
+            }
+            | CLASS TYPEID INHERITS TYPEID '{' feature_list error
+            {
+                $$ = NULL;
+            }
+            | error
+            {
+                $$ = NULL;
             };
     
     /*
@@ -320,11 +336,19 @@
                 {
                     $$ = dispatch($1, $3, $5);
                 }
+                | expr '.' OBJECTID '(' error ')'
+                {
+                    $$ = dispatch($1, $3, nil_Expressions());
+                }
                 | OBJECTID '(' expr_list ')'
                 {
                     $$ = dispatch(object(idtable.add_string("self")), $1, $3);
+                }
+                | OBJECTID '(' error ')'
+                {
+                    $$ = dispatch(object(idtable.add_string("self")), $1, nil_Expressions());
                 };
-  
+        
     expr_list   : expr
                 {
                     $$ = single_Expressions($1);
@@ -345,6 +369,10 @@
                 |  inner_block expr ';' 
                 {
                     $$ = append_Expressions($1, single_Expressions($2));
+                }
+                | error ';'
+                {
+                    $$ = nil_Expressions();
                 };
 
     /*
@@ -373,6 +401,14 @@
                 | OBJECTID ':' TYPEID ASSIGN expr ',' let_binding
                 {
                     $$ = let($1, $3, $5, $7);
+                }
+                | error ':' TYPEID IN expr
+                {
+                    $$ = let(idtable.add_string("_no_variable"), $3, no_expr_wrapper(), $5);
+                }
+                | OBJECTID ':' error IN expr
+                {
+                    $$ = let($1, idtable.add_string("Object"), no_expr_wrapper(), $5);
                 };
 
     /*
